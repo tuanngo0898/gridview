@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <color name="color_orange">#FF8133</color>
+
+    <color name="tag_ranging_anchor_ok_color">#b5abe3</color>
+    <color name="tag_ranging_anchor_fail_color">#c66</color>
+    <color name="color_passive_node">@color/color_orange</color>
+
+    <color name="grid_label_color">#d0d0d0</color>
+
+<!--    <color name="grid_line_color_primary">#FF0000</color>-->
+<!--    <color name="grid_line_color_secondary">#0014FF</color>-->
+<!--    <color name="grid_line_color_tertiary">#20FF00</color>-->
+
+    <color name="grid_line_color_primary">#e5e5e5</color>
+    <color name="grid_line_color_secondary">#e0e0e0</color>
+    <color name="grid_line_color_tertiary">#d0d0d0</color>
+
+</resources>

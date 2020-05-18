@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="metric_units">Metric</string>
+    <string name="metric_units_unit">m</string>
+
+    <string name="imperial_units">Imperial</string>
+    <string name="imperial_units_unit">yd</string>
+</resources>

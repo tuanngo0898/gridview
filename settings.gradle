@@ -1,4 +1,3 @@
 rootProject.name='GridViewRls'
 include ':app'
-include ':GridView'
 include ':gridview'
