@@ -10,6 +10,7 @@ import android.widget.Button;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.tuan.gridview.GridLine;
 import com.tuan.gridview.GridPoint;
 import com.tuan.gridview.GridView;
 import com.tuan.gridview.Position;
@@ -19,6 +20,7 @@ import com.tuan.gridviewrls.Points.TagPoint;
 public class MainActivity extends AppCompatActivity {
 
     private Paint gridPointPaint = new Paint();
+    private Paint gridLinePaint;
 
     private float posx = -2000.12f;
     private float posy = -200.12f;
@@ -33,6 +35,12 @@ public class MainActivity extends AppCompatActivity {
         gridPointPaint.setAntiAlias(true);
         gridPointPaint.setStrokeJoin(Paint.Join.ROUND);
         gridPointPaint.setStrokeCap(Paint.Cap.ROUND);
+
+        gridLinePaint = new Paint();
+        gridLinePaint.setStyle(Paint.Style.STROKE);
+        gridLinePaint.setTextAlign(Paint.Align.CENTER);
+        gridLinePaint.setStrokeWidth(5);
+        gridLinePaint.setColor(Color.rgb(255, 150, 0));
 
         GridView gridView = findViewById(R.id.gridView);
         gridView.addPoint(new GridPoint(0,0,0) {
@@ -82,5 +90,25 @@ public class MainActivity extends AppCompatActivity {
 
         AnchorPoint anchorPoint = new AnchorPoint(2000, 4000, 4000);
         gridView.addPoint(anchorPoint);
+
+        Position position1 = new Position(0,0,0);
+        Position position2 = new Position(1000,1000,1000);
+        GridLine gridLine1 = new GridLine(position1, position2) {
+            @Override
+            protected void onDrawLine(Canvas canvas, float cx1, float cy1, float cx2, float cy2) {
+                canvas.drawLine(cx1, cy1, cx2, cy2, gridLinePaint);
+            }
+        };
+        gridView.addLine(gridLine1);
+
+        Position position3 = new Position(0,2000,0);
+        Position position4 = new Position(1000,1000,1000);
+        GridLine gridLine2 = new GridLine(position3, position4) {
+            @Override
+            protected void onDrawLine(Canvas canvas, float cx1, float cy1, float cx2, float cy2) {
+                canvas.drawLine(cx1, cy1, cx2, cy2, gridLinePaint);
+            }
+        };
+        gridView.addLine(gridLine2);
     }
 }

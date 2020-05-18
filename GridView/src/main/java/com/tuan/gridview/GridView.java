@@ -5,7 +5,6 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.Paint;
-import android.graphics.PointF;
 import android.graphics.Typeface;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -25,16 +24,11 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
-public class GridView extends View implements GridPoint.OnPointStateChangeListener{
+public class GridView extends View implements GridPoint.OnPointStateChangeListener, GridLine.OnGridLineStateListener {
 
     private static final String MODULE_NAME = "GridView";
     private static final int GRID_LINES_MAX_LEVELS = 3;
     private static final int GRID_LABEL_TEXT_SIZE = 15;
-    public static final int LINE_WIDTH_NODE = 2;
-
-    private static final int NORMALIZATION_DISTANCE_UNIT_FACTOR = 10;
-    private static final float SHORTEST_GRID_SQUARE_CM = 0.5f;
-
     private static final float INCH_PER_MM = 1f / 25.4f;
 
     private static final float VIRTUAL_PER_REAL_MM_INITIAL_ZOOM = 1e-2f;      // 0.01mm on screen is 1mm in reality or 1mm on the screen is 100mm in reality or 1cm on the screen is 100cm in reality
@@ -63,7 +57,6 @@ public class GridView extends View implements GridPoint.OnPointStateChangeListen
     public static float SCREEN_XDPI;            // Pixel per inch (PPI) in X dimension
     public static float SCREEN_YDPI;            // Pixel per inch (PPI) in Y dimension
 
-
     float[] mDrawMatrixAsFloat = new float[9];
 
     private GestureDetector mGestureDetector;
@@ -74,25 +67,20 @@ public class GridView extends View implements GridPoint.OnPointStateChangeListen
 
     private Matrix mDrawMatrix;                 // keep the transformation which is result of scrolling and scaling
     private Matrix flingStartMatrix = new Matrix();
-    private Matrix zoomStartMatrix = new Matrix();
-    private PointF zoomFocalPoint = new PointF();
 
     private Paint gridLabelPaint;
     private int mWidthPx;
     private int mHeightPx;
 
-    private PointF mInjectedFocalPoint;
-    private Float mInjectedScale;
     private ArrayList<GridLine> shownGridLines = new ArrayList<>(GRID_LINES_MAX_LEVELS);
 
     private List<GridPoint> mGridPoints = new ArrayList<>();
+    private List<com.tuan.gridview.GridLine> mGridLines = new ArrayList<>();
 
     private float mMinGridMarkStepPx;   // minimal step in pixel for which we start drawing marks
     private float mPixelsPerVirMm;      // Number of pixel per 1mm of screen
     private float mPxPerRealMinZoom;    // Number of pixel per 1000mm (1m) in reality for min zoom
     private float mPxPerRealMaxZoom;    // Number of pixel per 1000mm (1m) in reality for max zoom\
-
-    private float pixelPerRealMm;
 
     private Paint[] gridPaint = new Paint[GRID_LINES_MAX_LEVELS];
 
@@ -137,6 +125,18 @@ public class GridView extends View implements GridPoint.OnPointStateChangeListen
     public void addPoint(GridPoint gridPoint) {
         mGridPoints.add(gridPoint);
         gridPoint.setOnPointStateChangeListener(this);
+    }
+
+    public void addLines(List<com.tuan.gridview.GridLine> gridLines) {
+        mGridLines.addAll(gridLines);
+        for(com.tuan.gridview.GridLine gridLine: mGridLines) {
+            gridLine.setOnPointStateChangeListener(this);
+        }
+    }
+
+    public void addLine(com.tuan.gridview.GridLine gridLine) {
+        mGridLines.add(gridLine);
+        gridLine.setOnPointStateChangeListener(this);
     }
 
     // Step 1: Call construct
@@ -315,13 +315,7 @@ public class GridView extends View implements GridPoint.OnPointStateChangeListen
         mHeightPx = h;
 
         if (mDrawMatrix == null) {
-            // we do not have the draw matrix yet
-            if (mInjectedScale != null) {
-                computeInjectedMatrix();
-            } else {
-                // Compute the whole matrix
-                computeInitialMatrix();
-            }
+            computeInitialMatrix();
         }
 
         Log.d(MODULE_NAME, "drawMatrix = " + mDrawMatrix);
@@ -343,7 +337,7 @@ public class GridView extends View implements GridPoint.OnPointStateChangeListen
 
         mDrawMatrix = new Matrix();
 
-        pixelPerRealMm = mPixelsPerVirMm * VIRTUAL_PER_REAL_MM_INITIAL_ZOOM;
+        float pixelPerRealMm = mPixelsPerVirMm * VIRTUAL_PER_REAL_MM_INITIAL_ZOOM;
 
         int sumX = 0, sumY = 0;
         int i = 0;
@@ -366,18 +360,6 @@ public class GridView extends View implements GridPoint.OnPointStateChangeListen
         // set the proper scale after move
         mDrawMatrix.postScale(pixelPerRealMm, -pixelPerRealMm);
 
-        // notify the listeners
-        onDrawMatrixChanged();
-    }
-
-    void computeInjectedMatrix() {
-        Log.d(MODULE_NAME, "computeInjectedMatrix(), mInjectedScale = " + mInjectedScale + ", mInjectedFocalPoint = " + mInjectedFocalPoint);
-        //noinspection ConstantConditions
-        mDrawMatrix = new Matrix();
-        // set scale first
-        mDrawMatrix.setScale(mInjectedScale, -mInjectedScale);
-        // now when we are in pixels, set transition according to focal point (which is in px)
-        mDrawMatrix.postTranslate(mWidthPx / 2 - mInjectedFocalPoint.x, mHeightPx / 2 - mInjectedFocalPoint.y);
         // notify the listeners
         onDrawMatrixChanged();
     }
@@ -453,6 +435,7 @@ public class GridView extends View implements GridPoint.OnPointStateChangeListen
             postInvalidate();
         }
 
+        drawGridLine(canvas);
         drawGridPoint(canvas);
 
         super.onDraw(canvas);
@@ -591,8 +574,6 @@ public class GridView extends View implements GridPoint.OnPointStateChangeListen
         for(GridPoint gridPoint: mGridPoints){
             Position position = gridPoint.getPosition();
 
-            if(position == null) continue;
-
             float[] fIn = {position.getX(),position.getY()};
             float[] fOut = new float[2];
 
@@ -604,6 +585,30 @@ public class GridView extends View implements GridPoint.OnPointStateChangeListen
 
     @Override
     public void onPointStatChange() {
+        invalidate();
+    }
+
+    private void drawGridLine(Canvas canvas){
+
+        for(com.tuan.gridview.GridLine gridLine: mGridLines){
+            Position position1 = gridLine.getPosition1();
+            Position position2 = gridLine.getPosition2();
+
+            float[] fIn1 = {position1.getX(),position1.getY()};
+            float[] fIn2 = {position2.getX(),position2.getY()};
+            float[] fOut1 = new float[2];
+            float[] fOut2 = new float[2];
+
+            mDrawMatrix.mapPoints(fOut1, fIn1);
+            mDrawMatrix.mapPoints(fOut2, fIn2);
+
+            gridLine.onDrawLine(canvas, fOut1[0], fOut1[1], fOut2[0], fOut2[1]);
+
+        }
+    }
+
+    @Override
+    public void onGridLineStateChanged() {
         invalidate();
     }
 }

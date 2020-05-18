@@ -6,6 +6,9 @@ public abstract class GridPoint {
     private OnPointStateChangeListener onPointStateChangeListener;
     private Position position;
 
+    public GridPoint(Position position){
+        this.position = position;
+    }
     public GridPoint(float x, float y, float z){
         position = new Position(x,y,z);
     }
@@ -18,7 +21,7 @@ public abstract class GridPoint {
         this.position = position;
     }
 
-    public abstract void onDrawPoint(Canvas canvas, float cx, float cy);
+    protected abstract void onDrawPoint(Canvas canvas, float cx, float cy);
 
     void setOnPointStateChangeListener(OnPointStateChangeListener onPointStateChangeListener) {
         this.onPointStateChangeListener = onPointStateChangeListener;
