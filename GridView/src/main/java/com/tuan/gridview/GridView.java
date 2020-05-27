@@ -115,6 +115,10 @@ public class GridView extends View implements GridPoint.OnPointStateChangeListen
         construct(context);
     }
 
+    public void setPoints(List<GridPoint> gridPoints) {
+        this.mGridPoints = gridPoints;
+    }
+
     public void addPoints(List<GridPoint> gridPoints) {
         mGridPoints.addAll(gridPoints);
         for(GridPoint gridPoint: mGridPoints) {
@@ -125,6 +129,13 @@ public class GridView extends View implements GridPoint.OnPointStateChangeListen
     public void addPoint(GridPoint gridPoint) {
         mGridPoints.add(gridPoint);
         gridPoint.setOnPointStateChangeListener(this);
+    }
+
+    public void setLines(List<com.tuan.gridview.GridLine> gridLines) {
+        this.mGridLines = gridLines;
+        for(GridPoint gridPoint: mGridPoints) {
+            gridPoint.setOnPointStateChangeListener(this);
+        }
     }
 
     public void addLines(List<com.tuan.gridview.GridLine> gridLines) {

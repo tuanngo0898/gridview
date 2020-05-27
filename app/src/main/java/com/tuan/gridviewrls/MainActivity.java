@@ -7,6 +7,7 @@ import android.graphics.Paint;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -17,10 +18,14 @@ import com.tuan.gridview.Position;
 import com.tuan.gridviewrls.Points.AnchorPoint;
 import com.tuan.gridviewrls.Points.TagPoint;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class MainActivity extends AppCompatActivity {
 
     private Paint gridPointPaint = new Paint();
     private Paint gridLinePaint;
+    private List<GridPoint> gridPoints = new ArrayList<>();
 
     private float posx = -2000.12f;
     private float posy = -200.12f;
@@ -110,5 +115,35 @@ public class MainActivity extends AppCompatActivity {
             }
         };
         gridView.addLine(gridLine2);
+
+        TagPoint point_0 = new TagPoint(0, 1000, 4000);
+        point_0.setId(0);
+        TagPoint point_1 = new TagPoint(0, 2000, 4000);
+        point_1.setId(1);
+        TagPoint point_2 = new TagPoint(0, 3000, 4000);
+        point_2.setId(2);
+        TagPoint point_3 = new TagPoint(0, 4000, 4000);
+        point_3.setId(3);
+        gridPoints.add(point_0);
+        gridPoints.add(point_1);
+        gridPoints.add(point_2);
+        gridPoints.add(point_3);
+
+        TagPoint point_4 = new TagPoint(1000, 7000, 2000);
+        point_4.setId(3);
+
+        Button button_3 = findViewById(R.id.button_3);
+        button_3.setOnClickListener(v -> {
+            if(gridPoints.contains(point_4)){
+                Toast.makeText(this,"Point has already in the list", Toast.LENGTH_SHORT).show();
+            }
+            else {
+                gridPoints.add(point_4);
+                gridView.setPoints(gridPoints);
+                point_4.invalidate();
+            }
+        });
+
+        gridView.addPoints(gridPoints);
     }
 }

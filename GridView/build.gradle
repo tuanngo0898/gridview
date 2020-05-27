@@ -6,6 +6,7 @@ group='com.github.tuanngo0898'
 android {
     compileSdkVersion 29
     buildToolsVersion "29.0.2"
+    version = '0.1.4'
 
     defaultConfig {
         minSdkVersion 24
@@ -27,7 +28,6 @@ android {
         sourceCompatibility = 1.8
         targetCompatibility = 1.8
     }
-
 }
 
 dependencies {
